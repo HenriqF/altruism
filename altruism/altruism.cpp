@@ -4,7 +4,7 @@ using namespace std;
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-void process(std::string name, int type){
+void process(std::string name,std::string codename, int type){
     int width, height, channels;
     unsigned char* foto = stbi_load(name.c_str(), &width, &height, &channels, 0);
     if (!foto) {
@@ -17,7 +17,7 @@ void process(std::string name, int type){
             std::string finalP;
 
             int totalSize = width*height;
-            std::ifstream brainFuck("code.txt");
+            std::ifstream brainFuck(codename);
             std::string code = "";
             int codeSize = 0;
             std::string codeline = "";
@@ -36,7 +36,10 @@ void process(std::string name, int type){
 
             //Caracteres por brilho: $@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\|()1{}[]?-_+~<>i!lI;:,"^`'.
             static const std::array<int,12> values = {234, 213, 192, 171, 150, 129, 108, 87, 66 ,45 ,24, -900};
-            static const std::array<string, 12> c =  {"$","%","W","o","Z","v","{","1","?","!",":","'"};
+            static const std::array<char, 12> c =  {'$','%','W','o','Z','v','{','1','?','!',':','\''};
+            std::unordered_map<char, char> relations = {{'#', '$'},{'[', '1'},{']', '1'},{'-','?'},{'+','?'},{'>','!'},{'<','!'},{',',':'},{'.','\''}};
+            int codePos = 0;
+
             for (int k = 0; k < height; k++){
                 for(int j = 0; j < width; j++){
 
@@ -57,7 +60,13 @@ void process(std::string name, int type){
 
                     for(int i = 0; i < 12; i++){
                         if (brightness > values[i]){
-                            line += c[i];
+                            if (relations[code[codePos]] == c[i]){
+                                line += code[codePos];
+                                codePos++;
+                            }
+                            else{
+                                line += c[i];
+                            }        
                             break;
                         }
                     }
@@ -66,29 +75,20 @@ void process(std::string name, int type){
                 finalP += "\n";
                 line = "";
             }
-            //"#","[":"","]","-","+",">","<",",","."
-            std::unordered_map<char, char> relations = {{'#', '$'},{'[', '1'},{']', '1'},{'-','?'},{'+','?'},{'>','!'},{'<','!'},{',',':'},{'.','\''}};
-            int codePos = 0;
-            for (int w = 0; w< totalSize; w++){
-                if (relations[code[codePos]] == finalP[w]){
-                    finalP[w] = code[codePos];
-                    codePos++;
-                }
-            }
 
             if (codePos < codeSize){
                 std::cout << "se liga precisei fazer um troco q tu talvez n goste, mas assim, só aumentar a imagem ou diminuir a mensagem (rimas) para resolver isase" << endl;
                 int rest = codeSize - codePos;
+
                 for (int s = 0; s< rest; s++){
                     finalP += code[codeSize-rest+s];
+                    
                     if (s % width == 0 && s != 0){
-                        std::cout << "aa" << endl;
                         finalP += "\n";
                     }
                 }
             }
 
-            
             std::string ftNome = name.erase(name.size()-4);
             ftNome += ".txt";
             std::ofstream fw(ftNome);
@@ -114,13 +114,16 @@ void process(std::string name, int type){
 int main(){
     while (true){
         std::string filename;
+        std::string codename;
         int type;
-        std::cout << "Digite o nome do arquivo para prosseguir -->";
+        std::cout << "Digite o nome da foto para prosseguir -->";
         std::cin >> filename;
+        std::cout << "Digite o nome do arquivo do código para prosseguir -->";
+        std::cin >> codename;
         std::cout << "Escolha o leitor de brilho (0, 1, 2)     -->";
         std::cin >> type;
 
-        process(filename, type);
+        process(filename, codename, type);
     }
     return 0;
 }
